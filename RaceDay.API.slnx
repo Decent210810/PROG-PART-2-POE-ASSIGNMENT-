@@ -1,11 +1,4 @@
 <Solution>
-  <Folder Name="/.github/" />
-  <Folder Name="/.github/workflows/">
-    <File Path="ciflow.yml" />
-  </Folder>
-  <Folder Name="/Solution Items/">
-    <File Path="README.md" />
-  </Folder>
   <Project Path="RaceDay.API.Tests/RaceDay.API.Tests.csproj" Id="e42d7703-b83a-41e0-9e0f-ffc8e68914c4" />
   <Project Path="RaceDay.API/RaceDay.API.csproj" />
 </Solution>
