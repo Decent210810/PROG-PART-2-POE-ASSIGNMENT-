@@ -1,0 +1,61 @@
+﻿@model RaceDay.MVC.Models.ViewModels.ProfileViewModel
+@{ ViewData["Title"] = "My Profile"; }
+
+<div class="container mt-5">
+    <h2>My Profile</h2>
+    
+    @if (ViewBag.Success != null)
+    {
+        <div class="alert alert-success">@ViewBag.Success</div>
+    }
+
+    <div class="row mt-4">
+        <div class="col-md-4 text-center">
+            @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+            {
+                <img src="@Model.ProfileImageUrl" class="img-fluid rounded-circle mb-3" style="width: 200px; height: 200px; object-fit: cover;" alt="Profile Picture">
+            }
+            else
+            {
+                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 200px; height: 200px;">
+                    <span class="text-white fs-1">@Model.FullName[0]</span>
+                </div>
+            }
+
+            <form asp-action="UploadProfilePicture" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <input type="file" name="file" class="form-control" accept="image/*" required />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Upload Picture</button>
+            </form>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Profile" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="Role" />
+                        
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label">Full Name</label>
+                            <input asp-for="FullName" class="form-control" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="DateOfBirth" class="form-label">Date of Birth</label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

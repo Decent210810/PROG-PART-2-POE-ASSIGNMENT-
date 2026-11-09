@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using RaceDay.API.Data;
 using RaceDay.API.DTOs;
 using RaceDay.API.Models;
+using RaceDay.API.Services;
 
 namespace RaceDay.API.Controllers
 {
@@ -11,15 +12,15 @@ namespace RaceDay.API.Controllers
     public class EventsController : ControllerBase
     {
         private readonly RaceDayDbContext _context;
+        private readonly IBlobStorageService _blobStorageService;
 
-        public EventsController(RaceDayDbContext context)
+        public EventsController(RaceDayDbContext context, IBlobStorageService blobStorageService)
         {
             _context = context;
+            _blobStorageService = blobStorageService;
         }
 
-        // ============================================================
         // Helper: Get current user ID from session
-        // ============================================================
         private int? GetCurrentUserId()
         {
             var userIdStr = HttpContext.Session.GetString("UserId");
@@ -28,18 +29,13 @@ namespace RaceDay.API.Controllers
             return userId;
         }
 
-        // ============================================================
         // Helper: Get current user role from session
-        // ============================================================
         private string? GetCurrentUserRole()
         {
             return HttpContext.Session.GetString("UserRole");
         }
 
-        // ============================================================
         // GET: /api/events
-        // Returns all events (public)
-        // ============================================================
         [HttpGet]
         public async Task<IActionResult> GetAllEvents()
         {
@@ -67,10 +63,7 @@ namespace RaceDay.API.Controllers
             return Ok(events);
         }
 
-        // ============================================================
         // GET: /api/events/{id}
-        // Returns a specific event with full details
-        // ============================================================
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEvent(int id)
         {
@@ -83,7 +76,7 @@ namespace RaceDay.API.Controllers
             if (eventItem == null)
                 return NotFound(new { message = "Event not found" });
 
-            var response = new
+            return Ok(new
             {
                 eventItem.Id,
                 eventItem.Name,
@@ -110,37 +103,24 @@ namespace RaceDay.API.Controllers
                     c.CategoryName,
                     c.Description
                 }).ToList()
-            };
-
-            return Ok(response);
+            });
         }
 
-        // ============================================================
         // POST: /api/events
-        // Creates a new event (Organiser only)
-        // ============================================================
         [HttpPost]
         public async Task<IActionResult> CreateEvent([FromBody] EventDto dto)
         {
-            // 1. Check authentication
             var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized(new { message = "Not logged in" });
+            if (userId == null) return Unauthorized(new { message = "Not logged in" });
 
-            // 2. Check role - must be Organiser
             var role = GetCurrentUserRole();
-            if (role != "Organiser")
-                return Forbid();
+            if (role != "Organiser") return Forbid();
 
-            // 3. Validate model
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // 4. Validate event type
             if (dto.EventType != "run" && dto.EventType != "walk" && dto.EventType != "cycle")
                 return BadRequest(new { message = "EventType must be 'run', 'walk', or 'cycle'" });
 
-            // 5. Create event
             var newEvent = new Event
             {
                 OrganiserId = userId.Value,
@@ -161,51 +141,34 @@ namespace RaceDay.API.Controllers
             {
                 newEvent.Id,
                 newEvent.Name,
-                newEvent.Description,
                 newEvent.EventDate,
                 newEvent.Location,
                 newEvent.Distance,
                 newEvent.EventType,
-                newEvent.OrganiserId,
-                newEvent.CreatedAt
+                newEvent.OrganiserId
             });
         }
 
-        // ============================================================
         // PUT: /api/events/{id}
-        // Updates an existing event (Organiser owner only)
-        // ============================================================
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateEvent(int id, [FromBody] EventDto dto)
         {
-            // 1. Check authentication
             var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized(new { message = "Not logged in" });
+            if (userId == null) return Unauthorized(new { message = "Not logged in" });
 
-            // 2. Check role
             var role = GetCurrentUserRole();
-            if (role != "Organiser")
-                return Forbid();
+            if (role != "Organiser") return Forbid();
 
-            // 3. Validate model
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // 4. Find event
             var eventItem = await _context.Events.FindAsync(id);
-            if (eventItem == null)
-                return NotFound(new { message = "Event not found" });
+            if (eventItem == null) return NotFound(new { message = "Event not found" });
 
-            // 5. Check ownership
-            if (eventItem.OrganiserId != userId.Value)
-                return Forbid();
+            if (eventItem.OrganiserId != userId.Value) return Forbid();
 
-            // 6. Validate event type
             if (dto.EventType != "run" && dto.EventType != "walk" && dto.EventType != "cycle")
                 return BadRequest(new { message = "EventType must be 'run', 'walk', or 'cycle'" });
 
-            // 7. Update fields
             eventItem.Name = dto.Name;
             eventItem.Description = dto.Description;
             eventItem.EventDate = dto.EventDate;
@@ -220,7 +183,6 @@ namespace RaceDay.API.Controllers
             {
                 eventItem.Id,
                 eventItem.Name,
-                eventItem.Description,
                 eventItem.EventDate,
                 eventItem.Location,
                 eventItem.Distance,
@@ -229,64 +191,43 @@ namespace RaceDay.API.Controllers
             });
         }
 
-        // ============================================================
         // DELETE: /api/events/{id}
-        // Deletes an event (Organiser owner only)
-        // ============================================================
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEvent(int id)
         {
-            // 1. Check authentication
             var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized(new { message = "Not logged in" });
+            if (userId == null) return Unauthorized(new { message = "Not logged in" });
 
-            // 2. Check role
             var role = GetCurrentUserRole();
-            if (role != "Organiser")
-                return Forbid();
+            if (role != "Organiser") return Forbid();
 
-            // 3. Find event
             var eventItem = await _context.Events
                 .Include(e => e.Enrolments)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
-            if (eventItem == null)
-                return NotFound(new { message = "Event not found" });
+            if (eventItem == null) return NotFound(new { message = "Event not found" });
 
-            // 4. Check ownership
-            if (eventItem.OrganiserId != userId.Value)
-                return Forbid();
+            if (eventItem.OrganiserId != userId.Value) return Forbid();
 
-            // 5. Check if event has enrolments
             if (eventItem.Enrolments.Any())
                 return Conflict(new { message = "Cannot delete event with existing enrolments" });
 
-            // 6. Delete event
             _context.Events.Remove(eventItem);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // ============================================================
         // GET: /api/events/my-events
-        // Returns all events created by current Organiser
-        // ============================================================
         [HttpGet("my-events")]
         public async Task<IActionResult> GetMyEvents()
         {
-            // 1. Check authentication
             var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized(new { message = "Not logged in" });
+            if (userId == null) return Unauthorized(new { message = "Not logged in" });
 
-            // 2. Check role
             var role = GetCurrentUserRole();
-            if (role != "Organiser")
-                return Forbid();
+            if (role != "Organiser") return Forbid();
 
-            // 3. Get events
             var events = await _context.Events
                 .Include(e => e.EventImage)
                 .Include(e => e.Categories)
@@ -297,19 +238,59 @@ namespace RaceDay.API.Controllers
                 {
                     e.Id,
                     e.Name,
-                    e.Description,
                     e.EventDate,
                     e.Location,
                     e.Distance,
                     e.EventType,
                     ImageUrl = e.EventImage != null ? e.EventImage.ImageUrl : null,
                     CategoryCount = e.Categories.Count,
-                    EnrolmentCount = e.Enrolments.Count,
-                    e.CreatedAt
+                    EnrolmentCount = e.Enrolments.Count
                 })
                 .ToListAsync();
 
             return Ok(events);
+        }
+
+        // POST: /api/events/{id}/banner (NEW FOR AZURE BLOB)
+        [HttpPost("{id}/banner")]
+        public async Task<IActionResult> UploadEventBanner(int id, IFormFile file)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return Unauthorized(new { message = "Not logged in" });
+
+            var role = GetCurrentUserRole();
+            if (role != "Organiser") return Forbid();
+
+            var eventItem = await _context.Events
+                .Include(e => e.EventImage)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (eventItem == null) return NotFound(new { message = "Event not found" });
+            if (eventItem.OrganiserId != userId.Value) return Forbid();
+            if (file == null || file.Length == 0) return BadRequest(new { message = "No file uploaded" });
+
+            using var stream = file.OpenReadStream();
+            var imageUrl = await _blobStorageService.UploadFileAsync(stream, file.FileName, file.ContentType);
+
+            if (eventItem.EventImage != null)
+            {
+                eventItem.EventImage.ImageUrl = imageUrl;
+                eventItem.EventImage.BlobName = file.FileName;
+                eventItem.EventImage.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                eventItem.EventImage = new EventImage
+                {
+                    ImageUrl = imageUrl,
+                    BlobName = file.FileName,
+                    UploadedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { imageUrl });
         }
     }
 }

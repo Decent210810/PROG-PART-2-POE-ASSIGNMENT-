@@ -1,0 +1,47 @@
+﻿@model List<RaceDay.MVC.Models.ViewModels.CategoryViewModel>
+@{
+    ViewData["Title"] = "Manage Categories";
+}
+
+<div class="container mt-5">
+    <h2>Categories for Event</h2>
+    <a asp-action="Index" class="btn btn-secondary mb-3">Back to Events</a>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">Existing Categories</div>
+                <ul class="list-group list-group-flush">
+                    @if (Model.Count == 0)
+                    {
+                        <li class="list-group-item">No categories yet.</li>
+                    }
+                    @foreach (var cat in Model)
+                    {
+                        <li class="list-group-item">@cat.CategoryName</li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">Add New Category</div>
+                <div class="card-body">
+                    <form asp-action="CreateCategory" method="post">
+                        <input type="hidden" name="eventId" value="@ViewBag.EventId" />
+                        <div class="mb-3">
+                            <label class="form-label">Category Name (e.g., Senior, Open Men)</label>
+                            <input type="text" name="categoryName" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description (Optional)</label>
+                            <input type="text" name="description" class="form-control" />
+                        </div>
+                        <button type="submit" class="btn btn-success">Add Category</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,33 @@
+﻿@model List<RaceDay.MVC.Models.ViewModels.ResultViewModel>
+@{ ViewData["Title"] = "My Results"; }
+
+<div class="container mt-5">
+    <h2>My Results</h2>
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Finish Time</th>
+                <th>Position</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="5" class="text-muted">No results recorded yet.</td></tr>
+            }
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.EventName</td>
+                    <td>@r.EventDate.ToShortDateString()</td>
+                    <td>@r.FinishTime</td>
+                    <td>@r.FinishingPosition out of @r.TotalFinishers</td>
+                    <td>@r.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

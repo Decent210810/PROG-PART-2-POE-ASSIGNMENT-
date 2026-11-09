@@ -1,0 +1,31 @@
+﻿@model List<RaceDay.MVC.Models.ViewModels.EnrolmentViewModel>
+@{ ViewData["Title"] = "My Enrolments"; }
+
+<div class="container mt-5">
+    <h2>My Enrolments</h2>
+    <table class="table table-hover mt-3">
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="4" class="text-muted">You haven't enrolled in any events yet.</td></tr>
+            }
+            @foreach (var e in Model)
+            {
+                <tr>
+                    <td>@e.EventName</td>
+                    <td>@e.EventDate.ToShortDateString()</td>
+                    <td>@e.CategoryName</td>
+                    <td><span class="badge bg-@(e.Status == "Confirmed" ? "success" : e.Status == "Pending" ? "warning" : "secondary")">@e.Status</span></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

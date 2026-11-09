@@ -1,0 +1,55 @@
+﻿@model RaceDay.MVC.Models.ViewModels.CreateEventViewModel
+@{ ViewData["Title"] = "Create Event"; }
+
+<div class="container mt-5">
+    <h2>Create New Event</h2>
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                
+                <!-- This shows any API errors directly on the screen -->
+                <div asp-validation-summary="All" class="text-danger mb-3 fw-bold"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Event Name</label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="EventDate" class="form-label">Date</label>
+                    <input asp-for="EventDate" type="date" class="form-control" />
+                    <span asp-validation-for="EventDate" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Location" class="form-label">Location</label>
+                    <input asp-for="Location" class="form-control" />
+                    <span asp-validation-for="Location" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Distance" class="form-label">Distance (km)</label>
+                    <input asp-for="Distance" class="form-control" />
+                    <span asp-validation-for="Distance" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="EventType" class="form-label">Type</label>
+                    <select asp-for="EventType" class="form-select">
+                        <option value="run">Run</option>
+                        <option value="walk">Walk</option>
+                        <option value="cycle">Cycle</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success px-4">Create Event</button>
+                <a asp-action="Index" class="btn btn-secondary px-4">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- This enables client-side validation so empty fields are caught before hitting the API -->
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

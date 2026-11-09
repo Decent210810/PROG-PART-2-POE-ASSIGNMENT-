@@ -65,7 +65,7 @@ namespace RaceDay.API.Tests
         public async Task Unauthenticated_CannotCreateEvent()
         {
             using var context = TestHelpers.CreateInMemoryDbContext();
-            var controller = new EventsController(context);
+            var controller = new EventsController(context, null!);
             TestHelpers.SetupNoSession(controller);
 
             var dto = new EventDto

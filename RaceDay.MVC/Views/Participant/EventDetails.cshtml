@@ -1,0 +1,40 @@
+﻿@model RaceDay.MVC.Models.ViewModels.EventViewModel
+@{
+    ViewData["Title"] = "Event Details";
+    var categories = ViewBag.Categories as List<RaceDay.MVC.Models.ViewModels.CategoryViewModel>;
+}
+
+<div class="container mt-5">
+    <h2>@Model.Name</h2>
+    <p><strong>Date:</strong> @Model.EventDate.ToShortDateString()</p>
+    <p><strong>Location:</strong> @Model.Location</p>
+    <p>@Model.Description</p>
+    
+    <hr />
+    <h4>Enrol in this Event</h4>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (categories != null && categories.Count > 0)
+    {
+        <form asp-action="Enrol" method="post">
+            <input type="hidden" name="eventId" value="@Model.Id" />
+            <div class="mb-3">
+                <label class="form-label">Select Category</label>
+                <select name="categoryId" class="form-select" required>
+                    @foreach (var cat in categories)
+                    {
+                        <option value="@cat.Id">@cat.CategoryName</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-success">Enrol Now</button>
+        </form>
+    }
+    else
+    {
+        <p class="text-muted">No categories available for this event yet.</p>
+    }
+</div>

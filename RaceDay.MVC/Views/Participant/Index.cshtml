@@ -1,0 +1,43 @@
+﻿@model List<RaceDay.MVC.Models.ViewModels.EventViewModel>
+@{ ViewData["Title"] = "Upcoming Events"; }
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Welcome, @ViewBag.Name!</h2>
+    </div>
+    <h4 class="mb-3">Upcoming Events</h4>
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="alert alert-info">No events found.</div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var ev in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        @if (!string.IsNullOrEmpty(ev.ImageUrl))
+                        {
+                            <img src="@ev.ImageUrl" class="card-img-top" style="height: 200px; object-fit: cover;">
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@ev.Name</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">@ev.EventDate.ToString("dd MMM yyyy")</h6>
+                            <p class="card-text">@ev.Description</p>
+                            <ul class="list-unstyled">
+                                <li><strong>Location:</strong> @ev.Location</li>
+                                <li><strong>Distance:</strong> @ev.Distance km</li>
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <!-- THIS IS THE MISSING ENROL BUTTON -->
+                            <a asp-action="EventDetails" asp-route-id="@ev.Id" class="btn btn-success w-100 fw-bold">View & Enrol</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

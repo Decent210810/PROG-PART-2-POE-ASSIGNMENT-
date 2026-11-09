@@ -44,7 +44,7 @@ namespace RaceDay.API.Tests
             });
             await context.SaveChangesAsync();
 
-            var controller = new EventsController(context);
+            vavar controller = new EventsController(context, null!);
 
             var result = await controller.GetAllEvents();
 

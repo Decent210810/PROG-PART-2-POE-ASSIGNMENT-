@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using RaceDay.API.Data;
 using RaceDay.API.DTOs;
+using RaceDay.API.Models;
+using RaceDay.API.Services;
 
 namespace RaceDay.API.Controllers
 {
@@ -10,15 +12,15 @@ namespace RaceDay.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly RaceDayDbContext _context;
+        private readonly IBlobStorageService _blobStorageService;
 
-        public UsersController(RaceDayDbContext context)
+        public UsersController(RaceDayDbContext context, IBlobStorageService blobStorageService)
         {
             _context = context;
+            _blobStorageService = blobStorageService;
         }
 
-        // ============================================================
-        // Helper: Check if user is authenticated
-        // ============================================================
+        // Helper: Get current user ID from session
         private int? GetCurrentUserId()
         {
             var userIdStr = HttpContext.Session.GetString("UserId");
@@ -27,19 +29,14 @@ namespace RaceDay.API.Controllers
             return userId;
         }
 
-        // ============================================================
         // GET: /api/users/{id}
-        // Returns a specific user's public profile
-        // ============================================================
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
-            // 1. Check authentication
             var currentUserId = GetCurrentUserId();
             if (currentUserId == null)
                 return Unauthorized(new { message = "Not logged in" });
 
-            // 2. Find user
             var user = await _context.Users
                 .Include(u => u.ProfileImage)
                 .FirstOrDefaultAsync(u => u.Id == id);
@@ -47,7 +44,6 @@ namespace RaceDay.API.Controllers
             if (user == null)
                 return NotFound(new { message = "User not found" });
 
-            // 3. Return safe user data
             var response = new UserResponseDto
             {
                 Id = user.Id,
@@ -62,10 +58,7 @@ namespace RaceDay.API.Controllers
             return Ok(response);
         }
 
-        // ============================================================
         // GET: /api/users/me
-        // Returns the currently logged-in user's profile
-        // ============================================================
         [HttpGet("me")]
         public async Task<IActionResult> GetMyProfile()
         {
@@ -94,32 +87,24 @@ namespace RaceDay.API.Controllers
             return Ok(response);
         }
 
-        // ============================================================
         // PUT: /api/users/{id}
-        // Updates the authenticated user's own profile
-        // ============================================================
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
-            // 1. Check authentication
             var currentUserId = GetCurrentUserId();
             if (currentUserId == null)
                 return Unauthorized(new { message = "Not logged in" });
 
-            // 2. Check authorization - can only update own profile
             if (currentUserId != id)
                 return Forbid();
 
-            // 3. Validate model
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // 4. Find user
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user == null)
                 return NotFound(new { message = "User not found" });
 
-            // 5. Check if new email conflicts with another user
             if (user.Email != dto.Email)
             {
                 var emailExists = await _context.Users
@@ -129,7 +114,6 @@ namespace RaceDay.API.Controllers
                     return Conflict(new { message = "Email already in use" });
             }
 
-            // 6. Update fields
             user.FullName = dto.FullName;
             user.DateOfBirth = dto.DateOfBirth;
             user.Email = dto.Email;
@@ -137,7 +121,6 @@ namespace RaceDay.API.Controllers
 
             await _context.SaveChangesAsync();
 
-            // 7. Return updated profile
             var response = new UserResponseDto
             {
                 Id = user.Id,
@@ -149,6 +132,45 @@ namespace RaceDay.API.Controllers
             };
 
             return Ok(response);
+        }
+
+        // POST: /api/users/me/profile-picture (NEW FOR AZURE BLOB)
+        [HttpPost("me/profile-picture")]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return Unauthorized(new { message = "Not logged in" });
+
+            if (file == null || file.Length == 0) return BadRequest(new { message = "No file uploaded" });
+
+            var user = await _context.Users
+                .Include(u => u.ProfileImage)
+                .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+            if (user == null) return NotFound(new { message = "User not found" });
+
+            using var stream = file.OpenReadStream();
+            var imageUrl = await _blobStorageService.UploadFileAsync(stream, file.FileName, file.ContentType);
+
+            if (user.ProfileImage != null)
+            {
+                user.ProfileImage.ImageUrl = imageUrl;
+                user.ProfileImage.BlobName = file.FileName;
+                user.ProfileImage.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                user.ProfileImage = new UserProfileImage
+                {
+                    ImageUrl = imageUrl,
+                    BlobName = file.FileName,
+                    UploadedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { imageUrl });
         }
     }
 }

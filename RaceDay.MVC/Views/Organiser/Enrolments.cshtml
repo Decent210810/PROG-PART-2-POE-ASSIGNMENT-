@@ -1,0 +1,64 @@
+﻿@model List<RaceDay.MVC.Models.ViewModels.EnrolmentViewModel>
+@{ ViewData["Title"] = "Event Enrolments"; }
+
+<div class="container mt-5">
+    <h2>Enrolments for Event</h2>
+    <a asp-action="Index" class="btn btn-secondary mb-3">Back to Events</a>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info">No one has enrolled in this event yet.</div>
+    }
+    else
+    {
+        <table class="table table-hover bg-white shadow-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Participant ID</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Approval</th>
+                    <th>Capture Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model)
+                {
+                    <tr>
+                        <td>@e.Id</td>
+                        <td>@e.CategoryName</td>
+                        <td>
+                            <span class="badge bg-@(e.Status == "Confirmed" ? "success" : e.Status == "Pending" ? "warning" : "secondary")">
+                                @e.Status
+                            </span>
+                        </td>
+                        <td>
+                            @if (e.Status == "Pending")
+                            {
+                                <form asp-action="ApproveEnrolment" method="post">
+                                    <input type="hidden" name="enrolmentId" value="@e.Id" />
+                                    <input type="hidden" name="eventId" value="@ViewBag.EventId" />
+                                    <button type="submit" class="btn btn-sm btn-primary">Approve</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-success fw-bold">✓ Approved</span>
+                            }
+                        </td>
+                        <td>
+                            <form asp-action="CaptureResult" method="post" class="d-flex gap-2">
+                                <input type="hidden" name="enrolmentId" value="@e.Id" />
+                                <input type="hidden" name="eventId" value="@ViewBag.EventId" />
+                                <input type="text" name="finishTime" class="form-control form-control-sm" placeholder="HH:MM:SS" required />
+                                <input type="number" name="position" class="form-control form-control-sm" placeholder="Pos" required />
+                                <input type="number" name="totalFinishers" class="form-control form-control-sm" placeholder="Total" required />
+                                <button type="submit" class="btn btn-sm btn-success">Save</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

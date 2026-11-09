@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center mt-5">
+    <h1 class="display-4 fw-bold">🏃 Welcome to RaceDay</h1>
+    <p class="lead mt-3">The ultimate event management platform for the South African road running, walking, and cycling community.</p>
+    
+    <div class="mt-5">
+        @if (Context.Session.GetString("UserRole") == null)
+        {
+            <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg px-4 me-2">Login</a>
+            <a asp-controller="Account" asp-action="Register" class="btn btn-outline-success btn-lg px-4">Register</a>
+        }
+        else if (Context.Session.GetString("UserRole") == "Participant")
+        {
+            <a asp-controller="Participant" asp-action="Index" class="btn btn-success btn-lg px-4">Browse Events</a>
+        }
+        else if (Context.Session.GetString("UserRole") == "Organiser")
+        {
+            <a asp-controller="Organiser" asp-action="Index" class="btn btn-primary btn-lg px-4">Go to Dashboard</a>
+        }
+    </div>
+</div>
+
+<div class="row mt-5 pt-5 text-center">
+    <!-- For Participants Box -->
+    <div class="col-md-4">
+        <a asp-controller="Participant" asp-action="Index" class="text-decoration-none text-dark">
+            <div class="card p-3 h-100 shadow-sm border-0" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <h3>🏅 For Participants</h3>
+                <p class="text-muted">Browse upcoming events, enrol with your category, and track your personal race results.</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- For Organisers Box -->
+    <div class="col-md-4">
+        <a asp-controller="Organiser" asp-action="Index" class="text-decoration-none text-dark">
+            <div class="card p-3 h-100 shadow-sm border-0" style="cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                <h3>📋 For Organisers</h3>
+                <p class="text-muted">Create and manage events, define categories, upload banners, and capture results.</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Proudly South African Box (Not Clickable) -->
+    <div class="col-md-4">
+        <div class="card p-3 h-100 shadow-sm border-0">
+            <h3>🇿🇦 Proudly South African</h3>
+            <p class="text-muted">Built for the Comrades, the Cycle Tour, the Soweto Marathon, and every local race in between.</p>
+        </div>
+    </div>
+</div>

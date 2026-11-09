@@ -1,56 +1,86 @@
-# RaceDay API — Part 2 (POE)
+# 🏃 RaceDay - Event Management System
 
-**Module:** PROG6212 - Programming 2B
-**Assessment:** POE Part 2
-**Student:** Decent210810
+## 📖 Overview
+
+**RaceDay** is a full-stack web-based event management system designed specifically for the South African road running, walking, and cycling community. 
+
+> **Module:** PROG6212 - Programming 2B  
+> **Assessment:** Portfolio of Evidence (POE)  
+> **Year:** 2026
 
 ---
 
-## Overview
+## 👥 System Roles
 
-RESTful Web API built with ASP.NET Core and Entity Framework Core for the RaceDay event management platform.
+### 🏗️ Organiser
+- Create, edit, and delete events
+- Manage event categories
+- Upload event banner images
+- View and approve enrolments
+- Capture participant results
 
-## Two Roles
+### 🏃 Participant
+- Browse upcoming events
+- View event details and categories
+- Enrol in events
+- View personal enrolments and results
+- Update profile and upload profile picture
 
-- **Organiser** — Create/manage events, categories, and results
-- **Participant** — Browse events, enrol, view results
+---
 
-## Tech Stack
+## 📂 Repository Structure
 
-- ASP.NET Core Web API
-- Entity Framework Core (Code-First)
-- SQL Server
-- BCrypt.Net (password hashing)
-- Session-based authentication
-- xUnit unit tests
+### Part 1: System Planning and Database
+- **ERD Diagram**: Entity Relationship Diagram (`docs/ERD.png`)
+- **API Endpoint Plan**: Complete API specification (`docs/API_Endpoint_Plan.md`)
+- **Database Script**: SQL script for creating the database (`docs/Database_Script.sql`)
 
-## API Endpoints (28 total)
+### Part 2: RESTful API Development
+- **API Project**: ASP.NET Core Web API (`RaceDay.API/`)
+- **Test Project**: xUnit Unit Tests (`RaceDay.API.Tests/`)
+- **CI/CD**: GitHub Actions Workflow (`.github/workflows/ci-cd.yml`)
+- **29 Unit Tests** passing covering Authentication, Events, Enrolments, and Role-based access.
 
-- **Auth** (4): register, login, logout, me
-- **Users** (3): view, update, me
-- **Events** (6): CRUD + my-events
-- **Categories** (5): CRUD for events
-- **Enrolments** (5): enrol, view, update status, withdraw
-- **Results** (5): capture, view, update, delete
+### Part 3: MVC Frontend & Docker
+- **MVC Project**: ASP.NET Core MVC Application (`RaceDay.MVC/`)
+- **Dockerfile**: Containerisation setup (`RaceDay.MVC/Dockerfile`)
+- **Azure Blob Storage**: Integration for uploading images via the API.
+- **Complete UI**: Role-based navigation, dashboards, and form validation.
 
-## Setup Instructions
+---
 
-1. Clone the repo
-2. Open `RaceDay.API.slnx` in Visual Studio
-3. Update `appsettings.json` connection string
-4. Run `Update-Database` in Package Manager Console
-5. Press F5 to run the API
+## 🛠️ Tech Stack
 
-## Unit Tests
+| Technology | Purpose |
+|------------|---------|
+| ASP.NET Core Web API | RESTful API framework (Part 2) |
+| ASP.NET Core MVC | Web frontend (Part 3) |
+| Entity Framework Core | ORM (Code-First) |
+| SQL Server | Database |
+| BCrypt.Net | Password hashing |
+| xUnit + EF InMemory | Unit testing (Part 2) |
+| Azure Blob Storage (Azurite) | Image storage |
+| Docker | Containerisation (Part 3) |
+| GitHub Actions | CI/CD |
 
-29 comprehensive tests covering:
-- Registration, login, validation
-- Event CRUD + role checks
-- Enrolment workflow
-- Role-based access control
+---
 
-**All 29 tests passing.**
+## 🚀 Setup & Run Instructions
 
-## CI/CD
+### Prerequisites
+- Visual Studio 2022 (or later)
+- .NET SDK (8.0 or later)
+- SQL Server (LocalDB, Express, or full)
 
-GitHub Actions workflow builds and tests on every push.
+### Steps
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Decent210810/PROG-PART-2-POE-ASSIGNMENT-.git
+   cd PROG-PART-2-POE-ASSIGNMENT-
+   ## Docker Setup
+
+To run the MVC application in a Docker container:
+
+1. Build the image:
+   ```bash
+   docker build -t raceday-mvc -f RaceDay.MVC/Dockerfile .

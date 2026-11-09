@@ -1,0 +1,38 @@
+﻿@model List<RaceDay.MVC.Models.ViewModels.EventViewModel>
+@{ ViewData["Title"] = "Organiser Dashboard"; }
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Welcome Organiser, @ViewBag.Name!</h2>
+        <a asp-action="Create" class="btn btn-success fw-bold">+ Create Event</a>
+    </div>
+
+    <table class="table table-hover mt-3 bg-white shadow-sm">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ev in Model)
+            {
+                <tr>
+                    <td>@ev.Name</td>
+                    <td>@ev.EventDate.ToShortDateString()</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@ev.Id" class="btn btn-sm btn-secondary">Edit</a>
+                        <a asp-action="Categories" asp-route-id="@ev.Id" class="btn btn-sm btn-primary">Categories</a>
+                        <a asp-action="Enrolments" asp-route-id="@ev.Id" class="btn btn-sm btn-info text-white">Enrolments</a>
+                        <a asp-action="UploadBanner" asp-route-id="@ev.Id" class="btn btn-sm btn-warning">Banner</a>
+                        <form asp-action="DeleteEvent" method="post" class="d-inline" onsubmit="return confirm('Delete this event?');">
+                            <input type="hidden" name="id" value="@ev.Id" />
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
